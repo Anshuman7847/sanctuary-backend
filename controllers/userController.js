@@ -21,11 +21,12 @@ const loginController = async (req, res) => {
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const hashOtp = await bcrypt.hash(otp, 10);
 
-    // remove previous OTPs for this user/email
-    await OtpModel.findOneAndDelete({ userId: user._id, type: "login" });
-
-    // save new otp with type login
-    await OtpModel.create({ userId: user._id, email, hashOtp, type: "login" });
+  // remove previous OTPs for this email (avoid unique/index conflicts)
+  await OtpModel.deleteMany({ email, type: "login" });
++
++
+  // save new otp with type login
+  await OtpModel.create({ userId: user._id, email, hashOtp, type: "login" });
 
     // send email with otp
     try {

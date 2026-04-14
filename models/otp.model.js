@@ -1,9 +1,10 @@
 const mongoose = require("mongoose");
 
 const otpSchema = new mongoose.Schema({
+  // email is stored for reference but should not be a unique indexed field
+  // to avoid duplicate-key errors when multiple OTPs are generated rapidly.
   email: {
-    type: String,
-    unique: true
+    type: String
   },
   hashOtp: {
     type: String
