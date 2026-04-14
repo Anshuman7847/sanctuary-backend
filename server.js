@@ -14,12 +14,14 @@ const { createHabit, getHabits, deleteHabit, updateHabit } = require('./controll
 
 const app = express()
 const isProduction = process.env.NODE_ENV === "production";
+const normalizeOrigin = (value = "") => value.trim().replace(/\/+$/, "");
+
 const allowedOrigins = (
   process.env.FRONTEND_ORIGIN ||
   "http://localhost:5173,https://sanctuarymoodtracker.netlify.app"
 )
   .split(",")
-  .map((origin) => origin.trim())
+  .map(normalizeOrigin)
   .filter(Boolean);
 
 app.set("trust proxy", 1);
@@ -28,13 +30,16 @@ app.use(express.json())
 app.use(cookieParser())
 app.use(cors({
   origin: (origin, callback) => {
+    const normalizedOrigin = normalizeOrigin(origin);
+
     // allow non-browser tools (no origin header) and allowed frontend domains
-    if (!origin || allowedOrigins.includes(origin)) {
+    if (!origin || allowedOrigins.includes(normalizedOrigin)) {
       return callback(null, true);
     }
-    return callback(new Error("Not allowed by CORS"));
+    return callback(new Error(`Not allowed by CORS: ${origin}`));
   },
-  credentials: true
+  credentials: true,
+  optionsSuccessStatus: 200
 }))
 
 
