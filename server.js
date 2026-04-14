@@ -25,10 +25,11 @@ app.use(cors({
 }))
 
 
-//! connect to DB
+//! connect to DB and start server only after successful DB connection
 connectDB()
+    .then(() => {
+        // apis
 
-//! apis
 // app.get("/test", authentication  , (req, res) => {
     
 //     res.status(200).json({ message: "API status is healthy" })
@@ -133,3 +134,8 @@ app.post("/logout", (req, res) => {
 app.listen(process.env.PORT, () => {
     console.log(`http:localhost:${process.env.PORT}`)
 })
+    })
+    .catch((err) => {
+        console.error('Failed to start server due to DB connection error:', err && err.message ? err.message : err);
+        process.exit(1);
+    });
