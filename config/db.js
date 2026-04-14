@@ -1,30 +1,29 @@
-const mongoose=require("mongoose")
+const mongoose = require("mongoose");
+
+mongoose.set("strictQuery", true);
+mongoose.set("bufferCommands", false);
 
 const connectDB = async () => {
-  try {
-    if (!process.env.MONGODB_URL) {
-      throw new Error('MONGODB_URL is not set in environment');
-    }
+  if (!process.env.MONGODB_URL) {
+    throw new Error("MONGODB_URL is not set in environment");
+  }
 
+  try {
     await mongoose.connect(process.env.MONGODB_URL, {
-      // use the unified topology and new URL parser for stability
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
+      serverSelectionTimeoutMS: 10000,
+      socketTimeoutMS: 45000,
+      maxPoolSize: 10,
     });
 
-    console.log('DB Connected');
+    console.log("DB Connected");
     return mongoose.connection;
-    
-    console.error('Failed to connect to MongoDB:', error && error.message ? error.message : error);
-    // Rethrow so the caller can decide to exit or retry. Prevents the app
-    // from starting while mongoose is disconnected which leads to buffering timeouts.
+  } catch (error) {
+    console.error(
+      "Failed to connect to MongoDB:",
+      error && error.message ? error.message : error
+    );
     throw error;
-     await mongoose.connect(process.env.MONGODB_URL)
-     console.log("DB Connected") 
-     
-   } catch (error) {
-    console.log("Failed to connect")
-   }
-}
+  }
+};
 
-module.exports=connectDB
+module.exports = connectDB;
