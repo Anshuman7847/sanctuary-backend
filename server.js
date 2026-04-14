@@ -17,8 +17,11 @@ const app = express()
 app.use(express.json())
 app.use(cookieParser())
 app.use(cors({
-    origin: process.env.FRONTEND_ORIGIN || "http://localhost:5173",
-    credentials: true
+  origin: [
+    "http://localhost:5173",
+    "https://sanctuarymoodtracker.netlify.app"
+  ],
+  credentials: true
 }))
 
 
@@ -33,7 +36,7 @@ connectDB()
 
 app.get("/",(req,res)=>{
     res.status(200).json({ message: "API is working" });
-    
+
 })
 //! fetch all users
 
