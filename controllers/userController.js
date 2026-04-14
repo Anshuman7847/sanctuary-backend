@@ -3,6 +3,14 @@ const bcrypt = require("bcrypt")
 const { UserModel } = require("../models/user")
 const { OtpModel } = require("../models/otp.model")
 
+const isProduction = process.env.NODE_ENV === "production";
+const cookieOptions = {
+  httpOnly: true,
+  sameSite: isProduction ? "none" : "lax",
+  secure: isProduction,
+  maxAge: 60 * 60 * 1000, // 1 hour
+};
+
 //! Login 
 const loginController = async (req, res) => {
   try {
@@ -23,8 +31,6 @@ const loginController = async (req, res) => {
 
   // remove previous OTPs for this email (avoid unique/index conflicts)
   await OtpModel.deleteMany({ email, type: "login" });
-+
-+
   // save new otp with type login
   await OtpModel.create({ userId: user._id, email, hashOtp, type: "login" });
 
@@ -266,12 +272,7 @@ const verifyotpController = async (req, res) => {
       await OtpModel.findByIdAndDelete(otpPresent._id);
 
       // set cookie
-      res.cookie("token", token, {
-        httpOnly: true,
-        sameSite: "lax",
-        secure: process.env.NODE_ENV === "production",
-        maxAge: 60 * 60 * 1000 // 1 hour
-      });
+      res.cookie("token", token, cookieOptions);
 
       return res.status(200).json({ message: "OTP verified, login successful" });
     }
@@ -338,7 +339,11 @@ const updateProfileController = async (req, res) => {
 //! Logout 
 const logoutController = async (req, res) => {
   try {
-    res.clearCookie("token", { httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production" });
+    res.clearCookie("token", {
+      httpOnly: true,
+      sameSite: isProduction ? "none" : "lax",
+      secure: isProduction,
+    });
     return res.status(200).json({ message: "Logged out" });
   } catch (error) {
     return res.status(500).json({ message: "Internal server error" });

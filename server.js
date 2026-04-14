@@ -13,14 +13,27 @@ const { createHabit, getHabits, deleteHabit, updateHabit } = require('./controll
 
 
 const app = express()
+const isProduction = process.env.NODE_ENV === "production";
+const allowedOrigins = (
+  process.env.FRONTEND_ORIGIN ||
+  "http://localhost:5173,https://sanctuarymoodtracker.netlify.app"
+)
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+app.set("trust proxy", 1);
 
 app.use(express.json())
 app.use(cookieParser())
 app.use(cors({
-  origin: [
-    "http://localhost:5173",
-    "https://sanctuarymoodtracker.netlify.app"
-  ],
+  origin: (origin, callback) => {
+    // allow non-browser tools (no origin header) and allowed frontend domains
+    if (!origin || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error("Not allowed by CORS"));
+  },
   credentials: true
 }))
 
@@ -124,8 +137,8 @@ app.post('/logout', logoutController);
 app.post("/logout", (req, res) => {
     res.clearCookie("token", {
         httpOnly: true,
-        sameSite: "lax",
-        secure: process.env.NODE_ENV === "production",
+        sameSite: isProduction ? "none" : "lax",
+        secure: isProduction,
     });
     res.status(200).json({ message: "Logged out" });
 });
