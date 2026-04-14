@@ -31,7 +31,10 @@ connectDB()
 //     res.status(200).json({ message: "API status is healthy" })
 // })
 
-
+app.get("/",(req,res)=>{
+    res.status(200).json({ message: "API is working" });
+    
+})
 //! fetch all users
 
 app.get("/allusers", async (req, res) => {
